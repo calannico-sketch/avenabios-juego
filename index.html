@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AvenaBios™ - El Desafío del Lote Apto</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #151c2c;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border: 1px solid #2a364f;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #2a364f;
+            padding-bottom: 10px;
+        }
+
+        .title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            background: #0d1321;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud-value {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .gene-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .gene-btn {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 14px;
+            padding: 18px 10px;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .gene-btn:active {
+            background: var(--accent-blue);
+            border-color: #60a5fa;
+            transform: scale(0.96);
+        }
+
+        .problem-card {
+            background: #020617;
+            border: 2px solid var(--accent-gold);
+            border-radius: 14px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .problem-title {
+            color: var(--accent-gold);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .problem-desc {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 6px;
+            color: #f8fafc;
+        }
+
+        .quiz-option {
+            background: #1e293b;
+            border: 2px solid #334155;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: left;
+            line-height: 1.3;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .quiz-option.correct {
+            background: #064e3b !important;
+            border-color: var(--accent-green) !important;
+            color: #a7f3d0 !important;
+            font-weight: bold;
+        }
+
+        .quiz-option.wrong {
+            background: #7f1d1d !important;
+            border-color: var(--accent-red) !important;
+            color: #fecaca !important;
+        }
+
+        .root-lab-card {
+            background: #020617;
+            border-radius: 14px;
+            padding: 15px;
+            border: 1px solid #1e293b;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .plant-measure {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 5px 0;
+        }
+
+        .action-arena {
+            width: 100%;
+            height: 320px;
+            background: #020617;
+            border: 2px solid #334155;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            animation: floatUp 4.5s linear forwards;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(320px) scale(0.85); opacity: 1; }
+            100% { transform: translateY(-70px) scale(1.1); opacity: 0.9; }
+        }
+
+        .pop-effect {
+            animation: pop 0.2s ease-out forwards !important;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        .timer-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: var(--accent-green);
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+
+        .result-badge {
+            text-align: center;
+            padding: 20px;
+            border-radius: 14px;
+            background: #020617;
+            border: 2px solid var(--accent-green);
+        }
+
+        .badge-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🌱 AvenaBios™</h1>
+            <div class="subtitle">El Desafío del Lote Apto | UBA Biofísica & Estadística</div>
+        </div>
+
+        <div class="hud">
+            <div class="hud-item">
+                <span>Puntaje</span>
+                <span class="hud-value" id="hud-score">0</span>
+            </div>
+            <div class="hud-item">
+                <span>Fase</span>
+                <span class="hud-value" id="hud-phase">1 / 4</span>
+            </div>
+            <div class="hud-item">
+                <span>Viabilidad</span>
+                <span class="hud-value" id="hud-viability" style="color:var(--accent-gold)">50%</span>
+            </div>
+        </div>
+
+        <!-- Pantalla de Inicio -->
+        <div class="screen active" id="screen-intro">
+            <p style="font-size: 0.9rem; text-align: center; color: #cbd5e1; line-height: 1.5;">
+                ¡Bienvenido/a al laboratorio de BiÓspria!<br><br>
+                🎁 <b>¡DESAFÍO POR PREMIO!</b><br>Supera el <b>80% de Viabilidad</b> final para ganarte una <b>barrita de cereal de avena</b>.
+            </p>
+            <button class="btn" onclick="iniciarJuego()">🧬 Comenzar Misión</button>
+        </div>
+
+        <!-- FASE 1: Selección de Genes -->
+        <div class="screen" id="screen-fase1">
+            <div class="problem-card">
+                <div class="problem-title">¡Condición Ambiental a Corregir!</div>
+                <div class="problem-desc" id="problem-text">Cargando...</div>
+            </div>
+
+            <p style="font-size:0.75rem; text-align:center; color:#94a3b8; margin:0;">
+                Tómate tu tiempo y selecciona el gen correspondiente según tus anotaciones:
+            </p>
+
+            <div class="gene-grid">
+                <button class="gene-btn" onclick="responderFase1('DREB1A')">DREB1A</button>
+                <button class="gene-btn" onclick="responderFase1('NHX1')">NHX1</button>
+                <button class="gene-btn" onclick="responderFase1('ALMT1')">ALMT1</button>
+                <button class="gene-btn" onclick="responderFase1('EXPA1')">EXPA1</button>
+                <button class="gene-btn" onclick="responderFase1('IRT1')">IRT1</button>
+                <button class="gene-btn" onclick="responderFase1('PHT1')">PHT1</button>
+            </div>
+        </div>
+
+        <!-- FASE 2: Muestreo & Conceptos -->
+        <div class="screen" id="screen-fase2">
+            <div style="font-size:0.8rem; font-weight:800; color:#38bdf8;" id="fase2-q-num">Pregunta 1 de 8</div>
+            <p style="font-size:0.88rem; color:#f8fafc; margin:0; line-height:1.4;" id="fase2-q-text">Cargando...</p>
+            <div style="display:flex; flex-direction:column; gap:8px;" id="fase2-options"></div>
+        </div>
+
+        <!-- FASE 3: Diagnóstico de Raíces -->
+        <div class="screen" id="screen-fase3">
+            <div style="font-size:0.9rem; font-weight:800; color:#38bdf8; text-align:center;">
+                Diagnóstico de Raíces de Muestra (Gen EXPA1)
+            </div>
+            
+            <div class="root-lab-card">
+                <div style="font-size:0.8rem; color:#94a3b8;" id="sample-num">Muestra 1 de 3</div>
+                <div class="plant-measure" id="sample-val">-- cm</div>
+                <p style="font-size:0.8rem; color:#cbd5e1; margin:0;" id="sample-instruction">
+                    Haz clic en "Extraer Muestra" para medir la profundidad de raíz.
+                </p>
+                <button class="btn" style="padding:8px 16px; font-size:0.85rem;" id="btn-extract" onclick="extraerMuestra()">🌱 Extraer Muestra de Parcela</button>
+            </div>
+
+            <div id="classification-buttons" style="display:none; flex-direction:column; gap:8px;">
+                <p style="font-size:0.8rem; text-align:center; color:#f8fafc; margin:0;"><b>¿Cómo clasificas esta muestra?</b></p>
+                <button class="quiz-option" style="border-left:4px solid var(--accent-green);" onclick="clasificarMuestra(true)">
+                    🟢 <b>AvenaBios™ Eficiente:</b> Raíz profunda (> 40 cm) expresando el gen EXPA1.
+                </button>
+                <button class="quiz-option" style="border-left:4px solid var(--accent-red);" onclick="clasificarMuestra(false)">
+                    🔴 <b>Control Tradicional / Fallo:</b> Raíz corta (< 35 cm) sin modificación radicular.
+                </button>
+            </div>
+        </div>
+
+        <!-- FASE 4: Depuración CRISPR -->
+        <div class="screen" id="screen-fase4">
+            <div style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-align:center;">
+                ⚡ Depuración CRISPR: ¡Elimina las Mutaciones Off-Target!
+            </div>
+            <p style="font-size:0.75rem; color:#cbd5e1; margin:0; text-align:center;">
+                Toca las mutaciones <b>⚡</b> (+1% Viab). <b>¡No las dejes escapar!</b> (-2% Viab). <b>¡NO toques genes sanos!</b> (-2% Viab).
+            </p>
+
+            <div class="action-arena" id="arena"></div>
+            <div class="timer-bar"><div class="timer-progress" id="fase4-timer-bar"></div></div>
+        </div>
+
+        <!-- Pantalla Final -->
+        <div class="screen" id="screen-final">
+            <div class="result-badge" id="final-badge">
+                <div class="badge-title" id="final-title">¡LOTE APTO APROBADO!</div>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin-top:10px; line-height:1.4;" id="final-desc">
+                    Superaste las pruebas de genética, probabilidad, inferencia y depuración.
+                </p>
+            </div>
+            <button class="btn" onclick="location.reload()">🔄 Volver a Jugar</button>
+        </div>
+    </div>
+
+    <script>
+        var score = 0;
+        var viability = 50;
+        var currentProblem = 0;
+        var juegoFinalizado = false;
+
+        function modificarViabilidad(delta) {
+            if (juegoFinalizado) return;
+            viability += delta;
+            if (viability > 100) viability = 100;
+            if (viability < 0) viability = 0;
+            updateHUD();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-score').innerText = score;
+            var viabElem = document.getElementById('hud-viability');
+            viabElem.innerText = viability + "%";
+            
+            if (viability >= 80) {
+                viabElem.style.color = "var(--accent-green)";
+            } else if (viability >= 50) {
+                viabElem.style.color = "var(--accent-gold)";
+            } else {
+                viabElem.style.color = "var(--accent-red)";
+            }
+        }
+
+        var problemasFase1 = [
+            { desc: "El cultivo enfrenta una sequía extrema en el suelo", gen: "DREB1A" },
+            { desc: "Alta salinidad y acumulación de Sodio en el suelo", gen: "NHX1" },
+            { desc: "Toxicidad por Aluminio en suelos ácidos", gen: "ALMT1" },
+            { desc: "Necesidad de desarrollo de raíces más profundas", gen: "EXPA1" },
+            { desc: "Baja absorción y bioacumulación de Hierro en el grano", gen: "IRT1" },
+            { desc: "Dificultad para absorber Fósforo disponible", gen: "PHT1" }
+        ];
+
+        var preguntasFase2 = [
+            {
+                text: "Para evaluar la supervivencia a campo con 95% de confianza y 4% de error, ¿cuántas plantas (n) debemos muestrear?",
+                opts: ["200 plantas", "385 plantas", "500 plantas", "1000 plantas"],
+                correct: 1
+            },
+            {
+                text: "Según el modelo de Poisson (λ = 0,4), ¿qué porcentaje aproximado del lote estará TOTALMENTE LIBRE de mutaciones Off-Target?",
+                opts: ["12,00%", "93,28%", "67,03%", "80,00%"],
+                correct: 2
+            },
+            {
+                text: "¿Por qué AvenaBios™ aborda un perfil multigen de 6 genes en lugar de modificar uno solo?",
+                opts: [
+                    "Porque las limitaciones ambientales y nutricionales del suelo son múltiples y actúan simultáneamente.",
+                    "Porque la técnica CRISPR-Cas9 solo funciona si se modifican exactamente 6 genes.",
+                    "Para multiplicar el costo comercial de la patente.",
+                    "Porque es un requisito obligatorio del CBC de la UBA."
+                ],
+                correct: 0
+            },
+            {
+                text: "¿Cuál es la ventaja principal de CRISPR-Cas9 frente a la transgénesis tradicional?",
+                opts: [
+                    "Garantiza un 100% de éxito en la transformación sin ningún margen de error.",
+                    "Permite realizar modificaciones específicas en el genoma sin insertar ADN foráneo permanente.",
+                    "Que no requiere ningún tipo de análisis estadístico posterior.",
+                    "Que hace crecer la planta en solo 24 horas."
+                ],
+                correct: 1
+            },
+            {
+                text: "¿En qué región de Argentina sería más estratégico priorizar la siembra de AvenaBios™?",
+                opts: [
+                    "Únicamente en invernaderos cerrados con clima controlado.",
+                    "Zonas agrícolas afectadas por sequías recurrentes y suelos salinos/ácidos.",
+                    "En zonas selváticas sin actividad agrícola.",
+                    "Exclusivamente en suelos hiperfértiles sin ningún estrés ambiental."
+                ],
+                correct: 1
+            },
+            {
+                text: "En el modelo Binomial (n=200, p=0,12), ¿cuál es la probabilidad de obtener al menos 18 transformaciones exitosas?",
+                opts: ["50,00%", "67,03%", "93,28%", "100,00%"],
+                correct: 2
+            },
+            {
+                text: "¿Qué consecuencia principal genera un evento Off-Target durante la edición genética?",
+                opts: [
+                    "Cortes o modificaciones no deseadas en regiones fuera del gen objetivo.",
+                    "Aumento inmediato del crecimiento radicular.",
+                    "Que la planta absorba el doble de hierro en el grano.",
+                    "Que el cálculo de tamaño muestral cambie a n=50."
+                ],
+                correct: 0
+            },
+            {
+                text: "Según la monografía, ¿cuál es el rol principal de la Estadística en la Biotecnología Vegetal?",
+                opts: [
+                    "Reemplazar completamente el trabajo experimental de laboratorio.",
+                    "Transformar una propuesta experimental en un problema cuantificable y evaluar su viabilidad.",
+                    "Asegurar que todas las plantas modificadas crezcan idénticas sin variación.",
+                    "Servir únicamente como requisito para aprobar la materia Matemática 61."
+                ],
+                correct: 1
+            }
+        ];
+
+        function changeScreen(screenId) {
+            var pantallas = document.querySelectorAll('.screen');
+            for (var i = 0; i < pantallas.length; i++) {
+                pantallas[i].classList.remove('active');
+            }
+            var target = document.getElementById(screenId);
+            if (target) {
+                target.classList.add('active');
+            }
+        }
+
+        function iniciarJuego() {
+            score = 0;
+            viability = 50;
+            currentProblem = 0;
+            juegoFinalizado = false;
+            updateHUD();
+            document.getElementById('hud-phase').innerText = "1 / 4";
+            changeScreen('screen-fase1');
+            cargarProblemaFase1();
+        }
+
+        function cargarProblemaFase1() {
+            if (currentProblem >= problemasFase1.length) {
+                iniciarFase2();
+                return;
+            }
+            var prob = problemasFase1[currentProblem];
+            document.getElementById('problem-text').innerText = prob.desc;
+        }
+
+        function responderFase1(genSeleccionado) {
+            var prob = problemasFase1[currentProblem];
+            if (genSeleccionado === prob.gen) {
+                score += 15;
+                modificarViabilidad(5);
+            } else {
+                modificarViabilidad(-5);
+            }
+            currentProblem++;
+            cargarProblemaFase1();
+        }
+
+        var fase2Idx = 0;
+        var bloqueadoFase2 = false;
+
+        function iniciarFase2() {
+            fase2Idx = 0;
+            document.getElementById('hud-phase').innerText = "2 / 4";
+            changeScreen('screen-fase2');
+            cargarPreguntaFase2();
+        }
+
+        function cargarPreguntaFase2() {
+            if (fase2Idx >= preguntasFase2.length) {
+                iniciarFase3();
+                return;
+            }
+            bloqueadoFase2 = false;
+            document.getElementById('fase2-q-num').innerText = "Pregunta " + (fase2Idx + 1) + " de " + preguntasFase2.length;
+            var q = preguntasFase2[fase2Idx];
+            document.getElementById('fase2-q-text').innerText = q.text;
+            var container = document.getElementById('fase2-options');
+            container.innerHTML = '';
+
+            for (var i = 0; i < q.opts.length; i++) {
+                (function(idx){
+                    var btn = document.createElement('button');
+                    btn.className = 'quiz-option';
+                    btn.innerText = q.opts[idx];
+                    btn.onclick = function() {
+                        verificarRespuestaFase2(idx, q.correct, btn);
+                    };
+                    container.appendChild(btn);
+                })(i);
+            }
+        }
+
+        function verificarRespuestaFase2(idxSeleccionado, idxCorrecto, btnTarget) {
+            if (bloqueadoFase2) return;
+            bloqueadoFase2 = true;
+
+            var opciones = document.querySelectorAll('#fase2-options .quiz-option');
+
+            if (idxSeleccionado === idxCorrecto) {
+                btnTarget.classList.add('correct');
+                score += 20;
+                modificarViabilidad(4);
+            } else {
+                btnTarget.classList.add('wrong');
+                opciones[idxCorrecto].classList.add('correct');
+                modificarViabilidad(-4);
+            }
+
+            setTimeout(function() {
+                fase2Idx++;
+                cargarPreguntaFase2();
+            }, 1300);
+        }
+
+        // FASE 3: Diagnóstico de Raíces
+        var muestrasFase3 = [
+            { val: 48.5, esEficiente: true },
+            { val: 32.1, esEficiente: false },
+            { val: 49.2, esEficiente: true }
+        ];
+        var idxMuestra = 0;
+        var muestraActual = null;
+
+        function iniciarFase3() {
+            document.getElementById('hud-phase').innerText = "3 / 4";
+            changeScreen('screen-fase3');
+            idxMuestra = 0;
+            actualizarInterfazMuestra();
+        }
+
+        function actualizarInterfazMuestra() {
+            if (idxMuestra >= muestrasFase3.length) {
+                iniciarFase4();
+                return;
+            }
+            document.getElementById('sample-num').innerText = "Muestra " + (idxMuestra + 1) + " de 3";
+            document.getElementById('sample-val').innerText = "-- cm";
+            document.getElementById('btn-extract').style.display = 'inline-block';
+            document.getElementById('classification-buttons').style.display = 'none';
+            document.getElementById('sample-instruction').innerText = 'Haz clic en "Extraer Muestra" para medir la profundidad de raíz.';
+        }
+
+        function extraerMuestra() {
+            muestraActual = muestrasFase3[idxMuestra];
+            document.getElementById('sample-val').innerText = muestraActual.val + " cm";
+            document.getElementById('btn-extract').style.display = 'none';
+            document.getElementById('classification-buttons').style.display = 'flex';
+            document.getElementById('sample-instruction').innerText = 'Analiza la longitud obtenida y selecciona la clasificación correspondiente:';
+        }
+
+        function clasificarMuestra(seleccionoEficiente) {
+            if (seleccionoEficiente === muestraActual.esEficiente) {
+                score += 25;
+                modificarViabilidad(5);
+            } else {
+                modificarViabilidad(-6);
+            }
+            idxMuestra++;
+            actualizarInterfazMuestra();
+        }
+
+        // FASE 4: Depuración de Mutaciones
+        var bubbleSpawnInterval = null;
+        var fase4Timer = null;
+        var paletaColores = [
+            '#ef4444', '#10b981', '#3b82f6', '#f59e0b', 
+            '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+        ];
+        var genesValidos = ['DREB', 'NHX1', 'ALMT1', 'EXPA1', 'IRT1', 'PHT1'];
+
+        function iniciarFase4() {
+            document.getElementById('hud-phase').innerText = "4 / 4";
+            changeScreen('screen-fase4');
+            var arena = document.getElementById('arena');
+            arena.innerHTML = '';
+
+            var tiempoFase4 = 100;
+            var bar = document.getElementById('fase4-timer-bar');
+            bar.style.width = '100%';
+
+            bubbleSpawnInterval = setInterval(crearBurbuja, 550);
+
+            fase4Timer = setInterval(function() {
+                tiempoFase4 -= 1;
+                bar.style.width = tiempoFase4 + '%';
+                if (tiempoFase4 <= 0) {
+                    clearInterval(bubbleSpawnInterval);
+                    clearInterval(fase4Timer);
+                    mostrarFinal();
+                }
+            }, 150);
+        }
+
+        function crearBurbuja() {
+            if (juegoFinalizado) return;
+            var arena = document.getElementById('arena');
+            if (!arena) return;
+
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble';
+
+            var esMutacion = Math.random() < 0.35;
+            var colorAleatorio = paletaColores[Math.floor(Math.random() * paletaColores.length)];
+            
+            bubble.style.backgroundColor = colorAleatorio;
+            bubble.style.left = (Math.random() * 80 + 5) + '%';
+
+            var atrapada = false;
+
+            if (esMutacion) {
+                bubble.innerText = '⚡ MUT';
+                bubble.onclick = function() {
+                    if (juegoFinalizado) return;
+                    atrapada = true;
+                    score += 5;
+                    modificarViabilidad(1);
+                    bubble.classList.add('pop-effect');
+                    setTimeout(function() { if(bubble.parentNode) bubble.remove(); }, 200);
+                };
+            } else {
+                var genNombre = genesValidos[Math.floor(Math.random() * genesValidos.length)];
+                bubble.innerText = genNombre;
+                bubble.onclick = function() {
+                    if (juegoFinalizado) return;
+                    atrapada = true;
+                    modificarViabilidad(-2);
+                    bubble.classList.add('pop-effect');
+                    setTimeout(function() { if(bubble.parentNode) bubble.remove(); }, 200);
+                };
+            }
+
+            arena.appendChild(bubble);
+
+            setTimeout(function() {
+                if (bubble.parentNode) {
+                    if (!juegoFinalizado && esMutacion && !atrapada) {
+                        modificarViabilidad(-2);
+                    }
+                    bubble.remove();
+                }
+            }, 4500);
+        }
+
+        function mostrarFinal() {
+            juegoFinalizado = true;
+            clearInterval(bubbleSpawnInterval);
+            clearInterval(fase4Timer);
+            
+            // Limpiar las burbujas restantes en pantalla
+            var arena = document.getElementById('arena');
+            if (arena) arena.innerHTML = '';
+
+            changeScreen('screen-final');
+            var title = document.getElementById('final-title');
+            var desc = document.getElementById('final-desc');
+            var badge = document.getElementById('final-badge');
+
+            if (viability >= 80) {
+                title.innerText = "🎉 ¡DESAFÍO COMPLETADO!";
+                title.style.color = "var(--accent-green)";
+                badge.style.borderColor = "var(--accent-green)";
+                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b style='color:var(--accent-green); font-size:1.2rem;'>" + viability + "%</b><br><br><b>🍫 ¡GANASTE UNA BARRITA DE CEREAL!</b><br>Demuestra este resultado al equipo de AvenaBios™ para reclamar tu premio.";
+            } else {
+                title.innerText = "⚠️ LOTE INSUFICIENTE";
+                title.style.color = "var(--accent-gold)";
+                badge.style.borderColor = "var(--accent-gold)";
+                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b>" + viability + "%</b><br><br>Quedaste muy cerca del umbral del 80%. Revisa tus apuntes e inténtalo nuevamente para ganar la barrita de cereal.";
+            }
+        }
+    </script>
+</body>
+</html>
