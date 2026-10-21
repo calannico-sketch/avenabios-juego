@@ -221,24 +221,35 @@
 
         .bubble {
             position: absolute;
-            width: 58px;
-            height: 58px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: white;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            animation: floatUp 4.5s linear forwards;
+            animation: floatUp 3.2s linear forwards;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .bubble.gene-sano {
+            background-color: #2563eb;
+            border: 2px solid #60a5fa;
+        }
+
+        .bubble.mutacion {
+            background-color: #ef4444;
+            border: 2px solid #fca5a5;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
         }
 
         @keyframes floatUp {
             0% { transform: translateY(320px) scale(0.85); opacity: 1; }
-            100% { transform: translateY(-70px) scale(1.1); opacity: 0.9; }
+            100% { transform: translateY(-70px) scale(1.05); opacity: 0.9; }
         }
 
         .pop-effect {
@@ -307,7 +318,7 @@
         <div class="screen active" id="screen-intro">
             <p style="font-size: 0.9rem; text-align: center; color: #cbd5e1; line-height: 1.5;">
                 ¡Bienvenido/a al laboratorio de BiÓspria!<br><br>
-                🎁 <b>¡DESAFÍO POR PREMIO!</b><br>Supera el <b>80% de Viabilidad</b> final para ganarte una <b>barrita de cereal de avena</b>.
+                🧪 <b>DESAFÍO DEL LOTE APTO</b><br>Demuestra tu capacidad biotecnológica y alcanza al menos un <b>80% de Viabilidad</b> para aprobar el lote de AvenaBios™.
             </p>
             <button class="btn" onclick="iniciarJuego()">🧬 Comenzar Misión</button>
         </div>
@@ -372,7 +383,7 @@
                 ⚡ Depuración CRISPR: ¡Elimina las Mutaciones Off-Target!
             </div>
             <p style="font-size:0.75rem; color:#cbd5e1; margin:0; text-align:center;">
-                Toca las mutaciones <b>⚡</b> (+1% Viab). <b>¡No las dejes escapar!</b> (-2% Viab). <b>¡NO toques genes sanos!</b> (-2% Viab).
+                Elimina las mutaciones rojas <b>☠️ MUT</b> (+1% Viab). <b>¡No las dejes escapar!</b> (-1.5% Viab). <b>¡NO toques genes azules!</b> (-2% Viab).
             </p>
 
             <div class="action-arena" id="arena"></div>
@@ -462,7 +473,7 @@
             {
                 text: "¿En qué región de Argentina sería más estratégico priorizar la siembra de AvenaBios™?",
                 opts: [
-                    "Únicamente en invernaderos cerrados con clima controlado.",
+                    "Únicamente en invernaderos cerrados con clima controlled.",
                     "Zonas agrícolas afectadas por sequías recurrentes y suelos salinos/ácidos.",
                     "En zonas selváticas sin actividad agrícola.",
                     "Exclusivamente en suelos hiperfértiles sin ningún estrés ambiental."
@@ -646,10 +657,6 @@
         // FASE 4: Depuración de Mutaciones
         var bubbleSpawnInterval = null;
         var fase4Timer = null;
-        var paletaColores = [
-            '#ef4444', '#10b981', '#3b82f6', '#f59e0b', 
-            '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
-        ];
         var genesValidos = ['DREB', 'NHX1', 'ALMT1', 'EXPA1', 'IRT1', 'PHT1'];
 
         function iniciarFase4() {
@@ -662,10 +669,10 @@
             var bar = document.getElementById('fase4-timer-bar');
             bar.style.width = '100%';
 
-            bubbleSpawnInterval = setInterval(crearBurbuja, 550);
+            bubbleSpawnInterval = setInterval(crearBurbuja, 480);
 
             fase4Timer = setInterval(function() {
-                tiempoFase4 -= 1;
+                tiempoFase4 -= 0.75; // Duración extendida a ~20 segundos
                 bar.style.width = tiempoFase4 + '%';
                 if (tiempoFase4 <= 0) {
                     clearInterval(bubbleSpawnInterval);
@@ -683,16 +690,14 @@
             var bubble = document.createElement('div');
             bubble.className = 'bubble';
 
-            var esMutacion = Math.random() < 0.35;
-            var colorAleatorio = paletaColores[Math.floor(Math.random() * paletaColores.length)];
-            
-            bubble.style.backgroundColor = colorAleatorio;
+            var esMutacion = Math.random() < 0.40;
             bubble.style.left = (Math.random() * 80 + 5) + '%';
 
             var atrapada = false;
 
             if (esMutacion) {
-                bubble.innerText = '⚡ MUT';
+                bubble.classList.add('mutacion');
+                bubble.innerText = '☠️ MUT';
                 bubble.onclick = function() {
                     if (juegoFinalizado) return;
                     atrapada = true;
@@ -702,6 +707,7 @@
                     setTimeout(function() { if(bubble.parentNode) bubble.remove(); }, 200);
                 };
             } else {
+                bubble.classList.add('gene-sano');
                 var genNombre = genesValidos[Math.floor(Math.random() * genesValidos.length)];
                 bubble.innerText = genNombre;
                 bubble.onclick = function() {
@@ -718,11 +724,11 @@
             setTimeout(function() {
                 if (bubble.parentNode) {
                     if (!juegoFinalizado && esMutacion && !atrapada) {
-                        modificarViabilidad(-2);
+                        modificarViabilidad(-1.5);
                     }
                     bubble.remove();
                 }
-            }, 4500);
+            }, 3200);
         }
 
         function mostrarFinal() {
@@ -730,7 +736,6 @@
             clearInterval(bubbleSpawnInterval);
             clearInterval(fase4Timer);
             
-            // Limpiar las burbujas restantes en pantalla
             var arena = document.getElementById('arena');
             if (arena) arena.innerHTML = '';
 
@@ -740,15 +745,15 @@
             var badge = document.getElementById('final-badge');
 
             if (viability >= 80) {
-                title.innerText = "🎉 ¡DESAFÍO COMPLETADO!";
+                title.innerText = "🎉 ¡LOTE APTO APROBADO!";
                 title.style.color = "var(--accent-green)";
                 badge.style.borderColor = "var(--accent-green)";
-                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b style='color:var(--accent-green); font-size:1.2rem;'>" + viability + "%</b><br><br><b>🍫 ¡GANASTE UNA BARRITA DE CEREAL!</b><br>Demuestra este resultado al equipo de AvenaBios™ para reclamar tu premio.";
+                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b style='color:var(--accent-green); font-size:1.2rem;'>" + viability + "%</b><br><br><b>✅ ¡FELICITACIONES!</b><br>Alcanzaste los parámetros de viabilidad requeridos para la transformación genética de AvenaBios™.";
             } else {
                 title.innerText = "⚠️ LOTE INSUFICIENTE";
                 title.style.color = "var(--accent-gold)";
                 badge.style.borderColor = "var(--accent-gold)";
-                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b>" + viability + "%</b><br><br>Quedaste muy cerca del umbral del 80%. Revisa tus apuntes e inténtalo nuevamente para ganar la barrita de cereal.";
+                desc.innerHTML = "Puntaje Final: <b>" + score + " pts</b><br>Viabilidad del Lote: <b>" + viability + "%</b><br><br>Quedaste muy cerca del umbral mínimo del 80%. Puedes reintentarlo para lograr la viabilidad requerida.";
             }
         }
     </script>
